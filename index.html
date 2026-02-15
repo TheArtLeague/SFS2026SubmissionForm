@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2026 Student/Faculty Show - Entry Form | The Art League</title>
+  <style>
+    :root {
+      --al-blue: #00aeef;
+      --al-blue-dark: #0090c8;
+      --al-blue-light: #e8f7fd;
+      --al-text: #2c2c2c;
+      --al-gray: #666;
+      --al-border: #ccc;
+      --al-error: #d32f2f;
+      --al-success: #2e7d32;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f5f5;
+      color: var(--al-text);
+      line-height: 1.6;
+    }
+
+    .header {
+      background: var(--al-blue);
+      color: white;
+      text-align: center;
+      padding: 2rem 1rem;
+    }
+
+    .header h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      text-transform: lowercase;
+      letter-spacing: -0.5px;
+    }
+
+    .header .dates {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-top: 0.25rem;
+    }
+
+    .header .logo {
+      font-size: 2.5rem;
+      font-weight: 900;
+      line-height: 1;
+      margin-bottom: 0.5rem;
+    }
+
+    .header .logo span {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 400;
+      letter-spacing: 2px;
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+
+    .info-banner {
+      background: white;
+      border-left: 4px solid var(--al-blue);
+      padding: 1rem 1.25rem;
+      margin-bottom: 2rem;
+      border-radius: 0 6px 6px 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+
+    .info-banner p {
+      font-size: 0.95rem;
+      color: var(--al-gray);
+    }
+
+    .info-banner strong {
+      color: var(--al-text);
+    }
+
+    .form-card {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 2rem;
+    }
+
+    .form-card h2 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 3px solid var(--al-blue);
+    }
+
+    .form-section {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-section h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--al-blue-dark);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 1rem;
+    }
+
+    .field {
+      margin-bottom: 1.25rem;
+    }
+
+    .field label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.3rem;
+      font-size: 0.95rem;
+    }
+
+    .field label .required {
+      color: var(--al-error);
+      margin-left: 2px;
+    }
+
+    .field input[type="text"],
+    .field input[type="email"],
+    .field input[type="tel"],
+    .field input[type="number"],
+    .field input[type="date"],
+    .field select,
+    .field textarea {
+      width: 100%;
+      padding: 0.6rem 0.75rem;
+      border: 1px solid var(--al-border);
+      border-radius: 4px;
+      font-size: 1rem;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+
+    .field input:focus,
+    .field select:focus,
+    .field textarea:focus {
+      outline: none;
+      border-color: var(--al-blue);
+      box-shadow: 0 0 0 3px rgba(0, 174, 239, 0.15);
+    }
+
+    .field .hint {
+      font-size: 0.82rem;
+      color: var(--al-gray);
+      margin-top: 0.25rem;
+    }
+
+    .field.error input,
+    .field.error select,
+    .field.error textarea {
+      border-color: var(--al-error);
+    }
+
+    .field .error-msg {
+      color: var(--al-error);
+      font-size: 0.82rem;
+      margin-top: 0.25rem;
+      display: none;
+    }
+
+    .field.error .error-msg {
+      display: block;
+    }
+
+    .row {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .row .field {
+      flex: 1;
+    }
+
+    .radio-group {
+      display: flex;
+      gap: 1.5rem;
+      margin-top: 0.3rem;
+    }
+
+    .radio-group label {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-weight: 400;
+      cursor: pointer;
+    }
+
+    .radio-group input[type="radio"] {
+      accent-color: var(--al-blue);
+      width: 16px;
+      height: 16px;
+    }
+
+    .price-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 1rem;
+    }
+
+    .price-row .field {
+      flex: 1;
+    }
+
+    #priceField {
+      transition: opacity 0.2s;
+    }
+
+    #priceField.disabled input {
+      background: #f0f0f0;
+      color: #999;
+    }
+
+    .checkbox-field {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.6rem;
+      margin-bottom: 1rem;
+    }
+
+    .checkbox-field input[type="checkbox"] {
+      accent-color: var(--al-blue);
+      width: 18px;
+      height: 18px;
+      margin-top: 3px;
+      flex-shrink: 0;
+    }
+
+    .checkbox-field label {
+      font-weight: 400;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    .acknowledgment-box {
+      background: var(--al-blue-light);
+      padding: 1.25rem;
+      border-radius: 6px;
+      margin-bottom: 1.25rem;
+    }
+
+    .acknowledgment-box p {
+      font-size: 0.88rem;
+      color: var(--al-text);
+      margin-bottom: 0.75rem;
+    }
+
+    .btn-submit {
+      display: block;
+      width: 100%;
+      padding: 0.85rem;
+      background: var(--al-blue);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-submit:hover {
+      background: var(--al-blue-dark);
+    }
+
+    .btn-submit:disabled {
+      background: #aaa;
+      cursor: not-allowed;
+    }
+
+    .success-message {
+      display: none;
+      text-align: center;
+      padding: 3rem 2rem;
+    }
+
+    .success-message .check {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: var(--al-success);
+      color: white;
+      font-size: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1rem;
+    }
+
+    .success-message h2 {
+      border: none;
+      color: var(--al-success);
+    }
+
+    .success-message p {
+      color: var(--al-gray);
+      margin-top: 0.5rem;
+    }
+
+    .success-message .btn-another {
+      display: inline-block;
+      margin-top: 1.5rem;
+      padding: 0.6rem 1.5rem;
+      background: var(--al-blue);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 1rem;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .success-message .btn-another:hover {
+      background: var(--al-blue-dark);
+    }
+
+    /* Admin panel */
+    .admin-toggle {
+      text-align: center;
+      margin-top: 2rem;
+    }
+
+    .admin-toggle button {
+      background: none;
+      border: 1px solid var(--al-border);
+      padding: 0.4rem 1rem;
+      border-radius: 4px;
+      color: var(--al-gray);
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    .admin-toggle button:hover {
+      border-color: var(--al-blue);
+      color: var(--al-blue);
+    }
+
+    .admin-panel {
+      display: none;
+      margin-top: 1rem;
+    }
+
+    .admin-panel.visible {
+      display: block;
+    }
+
+    .admin-panel .admin-card {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 2rem;
+    }
+
+    .admin-panel h2 {
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+    }
+
+    .admin-panel .stats {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .admin-panel .stat-box {
+      background: var(--al-blue-light);
+      padding: 0.75rem 1.25rem;
+      border-radius: 6px;
+      text-align: center;
+      flex: 1;
+      min-width: 100px;
+    }
+
+    .admin-panel .stat-box .num {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--al-blue-dark);
+    }
+
+    .admin-panel .stat-box .label {
+      font-size: 0.8rem;
+      color: var(--al-gray);
+      text-transform: uppercase;
+    }
+
+    .admin-panel table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      margin-bottom: 1rem;
+    }
+
+    .admin-panel th {
+      background: var(--al-blue);
+      color: white;
+      padding: 0.5rem;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    .admin-panel td {
+      padding: 0.5rem;
+      border-bottom: 1px solid #eee;
+    }
+
+    .admin-panel tr:hover td {
+      background: var(--al-blue-light);
+    }
+
+    .admin-btns {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .admin-btns button {
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--al-blue);
+      background: white;
+      color: var(--al-blue);
+      border-radius: 4px;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    .admin-btns button:hover {
+      background: var(--al-blue);
+      color: white;
+    }
+
+    .table-scroll {
+      overflow-x: auto;
+    }
+
+    footer {
+      text-align: center;
+      padding: 2rem 1rem;
+      color: var(--al-gray);
+      font-size: 0.85rem;
+    }
+
+    footer a {
+      color: var(--al-blue-dark);
+    }
+
+    .pastel-note {
+      display: none;
+    }
+
+    .pastel-note.visible {
+      display: block;
+      background: #fff3e0;
+      border: 1px solid #ffb74d;
+      padding: 0.75rem 1rem;
+      border-radius: 4px;
+      font-size: 0.88rem;
+      margin-top: 0.5rem;
+    }
+
+    /* Print entry label */
+    .print-label {
+      display: none;
+    }
+
+    @media print {
+      body {
+        background: white;
+        font-size: 11pt;
+      }
+      .header, .info-banner, .form-card, .admin-toggle, .admin-panel, footer {
+        display: none !important;
+      }
+      .print-label {
+        display: block !important;
+        max-width: 100%;
+        margin: 0;
+        padding: 0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        color: #000;
+      }
+      .print-label .print-header {
+        text-align: center;
+        border-bottom: 3px solid #000;
+        padding-bottom: 0.5rem;
+        margin-bottom: 1rem;
+      }
+      .print-label .print-header h2 {
+        font-size: 16pt;
+        font-weight: 800;
+        margin: 0;
+        border: none;
+        padding: 0;
+      }
+      .print-label .print-header p {
+        font-size: 10pt;
+        margin: 0.15rem 0 0;
+      }
+      .print-label .print-body {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.4rem 1.5rem;
+      }
+      .print-label .print-field {
+        padding: 0.25rem 0;
+        border-bottom: 1px solid #ddd;
+      }
+      .print-label .print-field.full-width {
+        grid-column: 1 / -1;
+      }
+      .print-label .print-field .pf-label {
+        font-size: 8pt;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #555;
+        font-weight: 600;
+        margin-bottom: 0.1rem;
+      }
+      .print-label .print-field .pf-value {
+        font-size: 12pt;
+        font-weight: 500;
+      }
+      .print-label .print-footer {
+        margin-top: 1.25rem;
+        padding-top: 0.75rem;
+        border-top: 2px solid #000;
+        display: flex;
+        justify-content: space-between;
+        font-size: 10pt;
+      }
+      .print-label .print-footer .sig-line {
+        border-bottom: 1px solid #000;
+        min-width: 200px;
+        padding-bottom: 2px;
+      }
+      .print-label .print-disclaimer {
+        margin-top: 1rem;
+        font-size: 7.5pt;
+        color: #555;
+        line-height: 1.4;
+      }
+      .container {
+        max-width: 100%;
+        padding: 0;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .row {
+        flex-direction: column;
+        gap: 0;
+      }
+      .price-row {
+        flex-direction: column;
+      }
+      .header h1 {
+        font-size: 1.5rem;
+      }
+      .header .dates {
+        font-size: 1rem;
+      }
+      .form-card {
+        padding: 1.25rem;
+      }
+      .admin-panel .stats {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo">art<span>league</span></div>
+  <h1>student/faculty show: entry form</h1>
+  <div class="dates">february 20 &mdash; march 1, 2026</div>
+</header>
+
+<div class="container">
+
+  <div class="info-banner">
+    <p><strong>Artwork drop-off:</strong> Monday, February 16 &mdash; 10:00 am&ndash;12:30 pm &amp; 5:30&ndash;8:30 pm<br>
+    The Art League Gallery, Room 21, Torpedo Factory Art Center<br><br>
+    Students may submit <strong>one</strong> piece of artwork created in an Art League class since January 2025.
+    All eligible work is accepted; judging is only for awards.</p>
+  </div>
+
+  <div class="form-card" id="formCard">
+    <h2>Entry Form for the 2026 Student/Faculty Show</h2>
+
+    <form id="entryForm" novalidate>
+
+      <!-- Contact Information -->
+      <div class="form-section">
+        <h3>Contact Information</h3>
+        <div class="row">
+          <div class="field" id="firstNameField">
+            <label>First Name <span class="required">*</span></label>
+            <input type="text" id="firstName" autocomplete="given-name" required>
+            <div class="error-msg">Please enter your first name.</div>
+          </div>
+          <div class="field" id="lastNameField">
+            <label>Last Name <span class="required">*</span></label>
+            <input type="text" id="lastName" autocomplete="family-name" required>
+            <div class="error-msg">Please enter your last name.</div>
+          </div>
+        </div>
+        <div class="checkbox-field" style="margin-bottom: 1.25rem;">
+          <input type="checkbox" id="isFaculty">
+          <label for="isFaculty">I am a faculty member</label>
+        </div>
+        <div class="row">
+          <div class="field" id="emailField">
+            <label>Email <span class="required">*</span></label>
+            <input type="email" id="email" autocomplete="email" required>
+            <div class="error-msg">Please enter a valid email address.</div>
+          </div>
+          <div class="field" id="phoneField">
+            <label>Phone # <span class="required">*</span></label>
+            <input type="tel" id="phone" autocomplete="tel" required>
+            <div class="error-msg">Please enter your phone number.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Class Info (students) / Department (faculty) -->
+      <div class="form-section" id="classSection">
+        <h3 id="classSectionTitle">Class Information</h3>
+        <div id="studentFields">
+          <div class="field" id="teacherField">
+            <label>Teacher <span class="required">*</span></label>
+            <input type="text" id="teacher" required>
+            <div class="error-msg">Please enter your teacher's name.</div>
+          </div>
+          <div class="field" id="classField">
+            <label>Class <span class="required">*</span></label>
+            <input type="text" id="className" required>
+            <div class="hint">e.g., Watercolor I, Oil Painting II</div>
+            <div class="error-msg">Please enter your class name.</div>
+          </div>
+        </div>
+        <div id="facultyFields" style="display:none;">
+          <div class="field" id="departmentField">
+            <label>Department <span class="required">*</span></label>
+            <input type="text" id="department" required>
+            <div class="error-msg">Please enter your department.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Artwork Details -->
+      <div class="form-section">
+        <h3>Artwork Details</h3>
+        <div class="field" id="titleField">
+          <label>Title of Work <span class="required">*</span></label>
+          <input type="text" id="artTitle" required>
+          <div class="error-msg">Please enter the title of your artwork.</div>
+        </div>
+        <div class="field" id="mediumField">
+          <label>Medium <span class="required">*</span></label>
+          <input type="text" id="medium" required>
+          <div class="hint">e.g., Oil on canvas, Watercolor, Acrylic, Pastel, Photography, Ceramic</div>
+          <div class="error-msg">Please enter the medium of your artwork.</div>
+        </div>
+
+        <div id="pastelNote" class="pastel-note">
+          <strong>Pastel submission:</strong> Please attach a note to the physical artwork indicating it is a pastel when you bring it to drop-off.
+        </div>
+
+        <!-- Price -->
+        <div class="field">
+          <label>For Sale? <span class="required">*</span></label>
+          <div class="radio-group">
+            <label><input type="radio" name="forSale" value="yes" checked> Yes, list a sale price</label>
+            <label><input type="radio" name="forSale" value="no"> Not For Sale</label>
+          </div>
+          <div class="hint">In the event of a sale, The Art League takes a 40% commission.</div>
+        </div>
+        <div class="field" id="priceField">
+          <label>Sale Price ($) <span class="required">*</span></label>
+          <input type="number" id="price" min="0" step="0.01" placeholder="0.00" required>
+          <div class="error-msg">Please enter a sale price.</div>
+        </div>
+      </div>
+
+      <!-- Acknowledgment -->
+      <div class="form-section">
+        <h3>Acknowledgment</h3>
+        <div class="acknowledgment-box">
+          <p>All artwork presented in The Art League's show is exhibited at the artists' risk. I understand that The Art League is not responsible for theft, loss, or damage to submitted artwork. I understand that work not picked up at the designated time is subject to a $5-a-day late fee. I understand that my artwork may be photographed for Art League publicity purposes.</p>
+          <div class="checkbox-field" id="agreeField">
+            <input type="checkbox" id="agree" required>
+            <label for="agree">I have read and agree to the above terms. <span class="required">*</span></label>
+          </div>
+          <div class="error-msg" id="agreeError" style="display:none; color:#d32f2f; font-size:0.82rem;">You must agree to the terms to submit.</div>
+        </div>
+
+        <div class="row">
+          <div class="field" id="signatureField">
+            <label>Typed Signature <span class="required">*</span></label>
+            <input type="text" id="signature" placeholder="Type your full name" required>
+            <div class="error-msg">Please type your full name as a signature.</div>
+          </div>
+          <div class="field" id="dateField">
+            <label>Date <span class="required">*</span></label>
+            <input type="date" id="signDate" required>
+            <div class="error-msg">Please enter the date.</div>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-submit" id="submitBtn">Submit Entry</button>
+    </form>
+  </div>
+
+  <!-- Success message -->
+  <div class="form-card success-message" id="successMessage">
+    <div class="check">&#10003;</div>
+    <h2>Entry Submitted!</h2>
+    <p>Thank you for your submission to the 2026 Student/Faculty Show.</p>
+    <p>Please remember to bring your artwork to drop-off on <strong>Monday, February 16</strong>.</p>
+    <p style="margin-top:0.5rem; font-size:0.9rem; color:var(--al-gray);">Print your entry form below to attach to your artwork at drop-off.</p>
+    <div style="display:flex; gap:0.75rem; justify-content:center; margin-top:1.5rem; flex-wrap:wrap;">
+      <button class="btn-another" onclick="printEntry()" style="background:var(--al-blue-dark);">Print Entry Form</button>
+      <button class="btn-another" onclick="resetForm()">Submit Another Entry</button>
+    </div>
+  </div>
+
+  <!-- Printable entry label (only visible when printing) -->
+  <div class="print-label" id="printLabel">
+    <div class="print-header">
+      <h2>The Art League &mdash; 2026 Student/Faculty Show</h2>
+      <p>Entry Form &bull; February 20 &ndash; March 1, 2026 &bull; Gallery, Room 21</p>
+    </div>
+    <div class="print-body">
+      <div class="print-field">
+        <div class="pf-label">First Name</div>
+        <div class="pf-value" id="printFirstName"></div>
+      </div>
+      <div class="print-field">
+        <div class="pf-label">Last Name</div>
+        <div class="pf-value" id="printLastName"></div>
+      </div>
+      <div class="print-field">
+        <div class="pf-label">Email</div>
+        <div class="pf-value" id="printEmail"></div>
+      </div>
+      <div class="print-field">
+        <div class="pf-label">Phone #</div>
+        <div class="pf-value" id="printPhone"></div>
+      </div>
+      <div class="print-field" id="printTeacherRow">
+        <div class="pf-label">Teacher</div>
+        <div class="pf-value" id="printTeacher"></div>
+      </div>
+      <div class="print-field" id="printClassRow">
+        <div class="pf-label">Class</div>
+        <div class="pf-value" id="printClass"></div>
+      </div>
+      <div class="print-field" id="printDeptRow" style="display:none;">
+        <div class="pf-label">Department</div>
+        <div class="pf-value" id="printDept"></div>
+      </div>
+      <div class="print-field full-width">
+        <div class="pf-label">Title of Work</div>
+        <div class="pf-value" id="printTitle"></div>
+      </div>
+      <div class="print-field">
+        <div class="pf-label">Medium</div>
+        <div class="pf-value" id="printMedium"></div>
+      </div>
+      <div class="print-field">
+        <div class="pf-label">Price</div>
+        <div class="pf-value" id="printPrice"></div>
+      </div>
+    </div>
+    <div class="print-footer">
+      <div><strong>Signature:</strong> <span class="sig-line" id="printSignature"></span></div>
+      <div><strong>Date:</strong> <span id="printDate"></span></div>
+    </div>
+    <div class="print-disclaimer">
+      All artwork presented in The Art League's show is exhibited at the artists' risk. The Art League is not responsible for theft, loss, or damage to submitted artwork. Work not picked up at the designated time is subject to a $5-a-day late fee. Artwork may be photographed for Art League publicity purposes.
+    </div>
+  </div>
+
+  <!-- Admin Panel -->
+  <div class="admin-toggle">
+    <button onclick="toggleAdmin()">View Submissions</button>
+  </div>
+
+  <div class="admin-panel" id="adminPanel">
+    <div class="admin-card">
+      <h2>Submitted Entries</h2>
+      <div class="stats">
+        <div class="stat-box"><div class="num" id="totalCount">0</div><div class="label">Total</div></div>
+        <div class="stat-box"><div class="num" id="studentCount">0</div><div class="label">Students</div></div>
+        <div class="stat-box"><div class="num" id="facultyCount">0</div><div class="label">Faculty</div></div>
+      </div>
+      <div class="admin-btns">
+        <button onclick="exportStudentCSV()">Export Student CSV</button>
+        <button onclick="exportFacultyCSV()">Export Faculty CSV</button>
+        <button onclick="exportAllCSV()">Export All CSV</button>
+        <button onclick="clearSubmissions()">Clear All</button>
+      </div>
+      <div class="table-scroll" style="margin-top: 1rem;">
+        <table id="submissionsTable">
+          <thead>
+            <tr>
+              <th>No.</th>
+              <th>Type</th>
+              <th>Name</th>
+              <th>Teacher/Dept</th>
+              <th>Class</th>
+              <th>Title</th>
+              <th>Medium</th>
+              <th>Price</th>
+              <th>Phone</th>
+              <th>Email</th>
+            </tr>
+          </thead>
+          <tbody id="submissionsBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <p>The Art League &bull; Torpedo Factory Art Center, Room 21 &bull; Alexandria, VA</p>
+  <p>Questions? Call <a href="tel:703-683-2323">703-683-2323</a> or email <a href="mailto:school@theartleague.org">school@theartleague.org</a></p>
+</footer>
+
+<script>
+(function() {
+  // --- Storage ---
+  const STORAGE_KEY = 'artleague_sfs2026_submissions';
+
+  function getSubmissions() {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    } catch(e) { return []; }
+  }
+
+  function saveSubmissions(data) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }
+
+  // --- Faculty checkbox toggle ---
+  const facultyCheckbox = document.getElementById('isFaculty');
+  const studentFields = document.getElementById('studentFields');
+  const facultyFields = document.getElementById('facultyFields');
+  const sectionTitle = document.getElementById('classSectionTitle');
+
+  facultyCheckbox.addEventListener('change', function() {
+    const isFaculty = this.checked;
+    studentFields.style.display = isFaculty ? 'none' : '';
+    facultyFields.style.display = isFaculty ? '' : 'none';
+    sectionTitle.textContent = isFaculty ? 'Department' : 'Class Information';
+    // Clear fields when switching
+    if (isFaculty) {
+      document.getElementById('teacher').value = '';
+      document.getElementById('className').value = '';
+    } else {
+      document.getElementById('department').value = '';
+    }
+  });
+
+  // --- For Sale toggle ---
+  const saleRadios = document.querySelectorAll('input[name="forSale"]');
+  const priceFieldDiv = document.getElementById('priceField');
+  const priceInput = document.getElementById('price');
+
+  saleRadios.forEach(r => r.addEventListener('change', function() {
+    const forSale = this.value === 'yes';
+    priceFieldDiv.classList.toggle('disabled', !forSale);
+    priceInput.disabled = !forSale;
+    if (!forSale) {
+      priceInput.value = '';
+      priceFieldDiv.classList.remove('error');
+    }
+  }));
+
+  // --- Pastel note ---
+  const mediumInput = document.getElementById('medium');
+  const pastelNote = document.getElementById('pastelNote');
+
+  mediumInput.addEventListener('input', function() {
+    const val = this.value.toLowerCase();
+    pastelNote.classList.toggle('visible', val.includes('pastel'));
+  });
+
+  // --- Set today's date ---
+  const dateInput = document.getElementById('signDate');
+  const today = new Date().toISOString().split('T')[0];
+  dateInput.value = today;
+
+  // --- Validation ---
+  function validateForm() {
+    let valid = true;
+    const isFaculty = document.getElementById('isFaculty').checked;
+    const forSale = document.querySelector('input[name="forSale"]:checked').value === 'yes';
+
+    const requiredFields = [
+      { id: 'firstNameField', input: 'firstName' },
+      { id: 'lastNameField', input: 'lastName' },
+      { id: 'emailField', input: 'email' },
+      { id: 'phoneField', input: 'phone' },
+      { id: 'titleField', input: 'artTitle' },
+      { id: 'mediumField', input: 'medium' },
+      { id: 'signatureField', input: 'signature' },
+      { id: 'dateField', input: 'signDate' },
+    ];
+
+    if (!isFaculty) {
+      requiredFields.push({ id: 'teacherField', input: 'teacher' });
+      requiredFields.push({ id: 'classField', input: 'className' });
+    } else {
+      requiredFields.push({ id: 'departmentField', input: 'department' });
+    }
+
+    if (forSale) {
+      requiredFields.push({ id: 'priceField', input: 'price' });
+    }
+
+    requiredFields.forEach(f => {
+      const fieldDiv = document.getElementById(f.id);
+      const input = document.getElementById(f.input);
+      if (!input.value.trim()) {
+        fieldDiv.classList.add('error');
+        valid = false;
+      } else {
+        fieldDiv.classList.remove('error');
+      }
+    });
+
+    // Email validation
+    const emailInput = document.getElementById('email');
+    const emailField = document.getElementById('emailField');
+    if (emailInput.value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value)) {
+      emailField.classList.add('error');
+      valid = false;
+    }
+
+    // Agree checkbox
+    const agree = document.getElementById('agree');
+    const agreeError = document.getElementById('agreeError');
+    if (!agree.checked) {
+      agreeError.style.display = 'block';
+      valid = false;
+    } else {
+      agreeError.style.display = 'none';
+    }
+
+    return valid;
+  }
+
+  // --- Submit ---
+  const form = document.getElementById('entryForm');
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    if (!validateForm()) {
+      // Scroll to first error
+      const firstError = document.querySelector('.field.error, #agreeError[style*="block"]');
+      if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    const isFaculty = document.getElementById('isFaculty').checked;
+    const forSale = document.querySelector('input[name="forSale"]:checked').value === 'yes';
+
+    const entry = {
+      type: isFaculty ? 'faculty' : 'student',
+      firstName: document.getElementById('firstName').value.trim(),
+      lastName: document.getElementById('lastName').value.trim(),
+      name: document.getElementById('firstName').value.trim() + ' ' + document.getElementById('lastName').value.trim(),
+      email: document.getElementById('email').value.trim(),
+      phone: document.getElementById('phone').value.trim(),
+      teacher: !isFaculty ? document.getElementById('teacher').value.trim() : '',
+      className: !isFaculty ? document.getElementById('className').value.trim() : '',
+      department: isFaculty ? document.getElementById('department').value.trim() : '',
+      title: document.getElementById('artTitle').value.trim(),
+      medium: document.getElementById('medium').value.trim(),
+      forSale: forSale,
+      price: forSale ? document.getElementById('price').value : 'NFS',
+      signature: document.getElementById('signature').value.trim(),
+      date: document.getElementById('signDate').value,
+      submittedAt: new Date().toISOString(),
+    };
+
+    const submissions = getSubmissions();
+    submissions.push(entry);
+    saveSubmissions(submissions);
+
+    // Populate print label
+    document.getElementById('printFirstName').textContent = entry.firstName;
+    document.getElementById('printLastName').textContent = entry.lastName;
+    document.getElementById('printEmail').textContent = entry.email;
+    document.getElementById('printPhone').textContent = entry.phone;
+    if (entry.type === 'student') {
+      document.getElementById('printTeacher').textContent = entry.teacher;
+      document.getElementById('printClass').textContent = entry.className;
+      document.getElementById('printTeacherRow').style.display = '';
+      document.getElementById('printClassRow').style.display = '';
+      document.getElementById('printDeptRow').style.display = 'none';
+    } else {
+      document.getElementById('printDept').textContent = entry.department;
+      document.getElementById('printTeacherRow').style.display = 'none';
+      document.getElementById('printClassRow').style.display = 'none';
+      document.getElementById('printDeptRow').style.display = '';
+    }
+    document.getElementById('printTitle').textContent = entry.title;
+    document.getElementById('printMedium').textContent = entry.medium;
+    document.getElementById('printPrice').textContent = entry.forSale ? '$' + entry.price : 'Not For Sale';
+    document.getElementById('printSignature').textContent = entry.signature;
+    document.getElementById('printDate').textContent = entry.date;
+
+    // Show success
+    document.getElementById('formCard').style.display = 'none';
+    document.getElementById('successMessage').style.display = 'block';
+    document.getElementById('successMessage').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    updateAdminPanel();
+  });
+
+  // --- Reset ---
+  window.resetForm = function() {
+    form.reset();
+    document.getElementById('formCard').style.display = '';
+    document.getElementById('successMessage').style.display = 'none';
+    // Reset to student (uncheck faculty)
+    facultyCheckbox.checked = false;
+    studentFields.style.display = '';
+    facultyFields.style.display = 'none';
+    sectionTitle.textContent = 'Class Information';
+    priceFieldDiv.classList.remove('disabled');
+    priceInput.disabled = false;
+    pastelNote.classList.remove('visible');
+    dateInput.value = today;
+    // Clear errors
+    document.querySelectorAll('.field.error').forEach(f => f.classList.remove('error'));
+    document.getElementById('agreeError').style.display = 'none';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // --- Print Entry ---
+  window.printEntry = function() {
+    window.print();
+  };
+
+  // --- Admin Panel ---
+  window.toggleAdmin = function() {
+    const panel = document.getElementById('adminPanel');
+    panel.classList.toggle('visible');
+    if (panel.classList.contains('visible')) {
+      updateAdminPanel();
+      panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  function updateAdminPanel() {
+    const submissions = getSubmissions();
+    const students = submissions.filter(s => s.type === 'student');
+    const faculty = submissions.filter(s => s.type === 'faculty');
+
+    document.getElementById('totalCount').textContent = submissions.length;
+    document.getElementById('studentCount').textContent = students.length;
+    document.getElementById('facultyCount').textContent = faculty.length;
+
+    const tbody = document.getElementById('submissionsBody');
+    tbody.innerHTML = '';
+
+    submissions.forEach((s, i) => {
+      const row = document.createElement('tr');
+      row.innerHTML =
+        '<td>' + (i + 1) + '</td>' +
+        '<td>' + esc(s.type) + '</td>' +
+        '<td>' + esc(s.name) + '</td>' +
+        '<td>' + esc(s.type === 'student' ? s.teacher : s.department) + '</td>' +
+        '<td>' + esc(s.className || '—') + '</td>' +
+        '<td>' + esc(s.title) + '</td>' +
+        '<td>' + esc(s.medium) + '</td>' +
+        '<td>' + (s.forSale ? '$' + esc(s.price) : 'NFS') + '</td>' +
+        '<td>' + esc(s.phone) + '</td>' +
+        '<td>' + esc(s.email) + '</td>';
+      tbody.appendChild(row);
+    });
+  }
+
+  function esc(str) {
+    const div = document.createElement('div');
+    div.textContent = str || '';
+    return div.innerHTML;
+  }
+
+  // --- CSV Export ---
+  function toCSV(headers, rows) {
+    const escape = v => '"' + String(v || '').replace(/"/g, '""') + '"';
+    const lines = [headers.map(escape).join(',')];
+    rows.forEach(r => lines.push(r.map(escape).join(',')));
+    return lines.join('\n');
+  }
+
+  function downloadCSV(filename, csv) {
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  window.exportStudentCSV = function() {
+    const submissions = getSubmissions().filter(s => s.type === 'student');
+    const headers = ['No.', 'First Name', 'Last Name', 'Teacher', 'Class', 'Title', 'Medium', 'Price', 'Phone', 'Email', 'Date Submitted'];
+    const rows = submissions.map((s, i) => [
+      i + 1, s.firstName || '', s.lastName || '', s.teacher, s.className, s.title, s.medium,
+      s.forSale ? s.price : 'NFS', s.phone, s.email, s.date
+    ]);
+    downloadCSV('student_show_intake_2026.csv', toCSV(headers, rows));
+  };
+
+  window.exportFacultyCSV = function() {
+    const submissions = getSubmissions().filter(s => s.type === 'faculty');
+    const headers = ['No.', 'First Name', 'Last Name', 'Department', 'Title', 'Medium', 'Price', 'Phone', 'Email', 'Date Submitted'];
+    const rows = submissions.map((s, i) => [
+      i + 1, s.firstName || '', s.lastName || '', s.department, s.title, s.medium,
+      s.forSale ? s.price : 'NFS', s.phone, s.email, s.date
+    ]);
+    downloadCSV('faculty_show_intake_2026.csv', toCSV(headers, rows));
+  };
+
+  window.exportAllCSV = function() {
+    const submissions = getSubmissions();
+    const headers = ['No.', 'Type', 'First Name', 'Last Name', 'Teacher/Dept', 'Class', 'Title', 'Medium', 'Price', 'Phone', 'Email', 'Date Submitted'];
+    const rows = submissions.map((s, i) => [
+      i + 1, s.type, s.firstName || '', s.lastName || '',
+      s.type === 'student' ? s.teacher : s.department,
+      s.className || '', s.title, s.medium,
+      s.forSale ? s.price : 'NFS', s.phone, s.email, s.date
+    ]);
+    downloadCSV('sfs2026_all_submissions.csv', toCSV(headers, rows));
+  };
+
+  window.clearSubmissions = function() {
+    if (confirm('Are you sure you want to clear all submissions? This cannot be undone.')) {
+      saveSubmissions([]);
+      updateAdminPanel();
+    }
+  };
+
+  // Init admin stats
+  updateAdminPanel();
+})();
+</script>
+
+</body>
+</html>
