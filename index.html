@@ -947,11 +947,36 @@
   // --- Google Sheets Backend ---
   const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxe6szUkzdYOeX9_iQ9MjG6n1vJjHHrkIUphBNrDQEwuLHZyLndH7QU-Z9SeBjzBbAy6w/exec';
 
+  // JSONP helper — bypasses CORS by loading response as a <script> tag
+  var jsonpCounter = 0;
+  function jsonpRequest(url, timeoutMs) {
+    return new Promise(function(resolve) {
+      var callbackName = '_jsonpCb' + (++jsonpCounter) + '_' + Date.now();
+      var timer = setTimeout(function() {
+        window[callbackName] = function() {};
+        resolve(null);
+      }, timeoutMs || 12000);
+
+      window[callbackName] = function(data) {
+        clearTimeout(timer);
+        delete window[callbackName];
+        resolve(data);
+      };
+
+      var script = document.createElement('script');
+      script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName;
+      script.onerror = function() {
+        clearTimeout(timer);
+        delete window[callbackName];
+        resolve(null);
+      };
+      document.body.appendChild(script);
+      // Clean up script tag after load
+      script.onload = function() { document.body.removeChild(script); };
+    });
+  }
+
   function postToSheets(entry) {
-    // Send data via GET request with query parameters.
-    // Google Apps Script doGet handles both reads and writes based on
-    // the "action" parameter. GET avoids all CORS issues.
-    // Server assigns the entry number and returns it.
     var params = {
       action: 'submit',
       entryNumber: entry.entryNumber || 'PENDING',
@@ -976,26 +1001,21 @@
       return encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
     }).join('&');
 
-    return fetch(SHEETS_URL + '?' + queryString)
-      .then(function(r) { return r.json(); })
+    return jsonpRequest(SHEETS_URL + '?' + queryString, 12000)
       .then(function(data) {
-        if (data.status === 'success') {
+        if (data && data.status === 'success') {
           console.log('Saved to Google Sheets: entry #' + data.entryNumber);
           return data.entryNumber;
         }
-        return null;
-      })
-      .catch(function(err) {
-        console.warn('Google Sheets save failed, saved locally only:', err);
+        console.warn('Google Sheets save failed or timed out');
         return null;
       });
   }
 
   function fetchFromSheets() {
-    return fetch(SHEETS_URL)
-      .then(function(r) { return r.json(); })
+    return jsonpRequest(SHEETS_URL, 12000)
       .then(function(data) {
-        if (data.status === 'success' && data.submissions) {
+        if (data && data.status === 'success' && data.submissions) {
           return data.submissions.map(function(row) {
             return {
               entryNumber: row['Entry No.'] || '',
@@ -1018,11 +1038,7 @@
             };
           });
         }
-        return [];
-      })
-      .catch(function(err) {
-        console.warn('Google Sheets GET failed, using local data:', err);
-        return null;
+        return (data === null) ? null : [];
       });
   }
 
