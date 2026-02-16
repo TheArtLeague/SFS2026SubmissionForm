@@ -951,9 +951,10 @@
     // Send data via GET request with query parameters.
     // Google Apps Script doGet handles both reads and writes based on
     // the "action" parameter. GET avoids all CORS issues.
+    // Server assigns the entry number and returns it.
     var params = {
       action: 'submit',
-      entryNumber: entry.entryNumber || '',
+      entryNumber: entry.entryNumber || 'PENDING',
       type: entry.type || '',
       firstName: entry.firstName || '',
       lastName: entry.lastName || '',
@@ -975,15 +976,18 @@
       return encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
     }).join('&');
 
-    fetch(SHEETS_URL + '?' + queryString)
+    return fetch(SHEETS_URL + '?' + queryString)
       .then(function(r) { return r.json(); })
       .then(function(data) {
         if (data.status === 'success') {
-          console.log('Saved to Google Sheets: entry ' + entry.entryNumber);
+          console.log('Saved to Google Sheets: entry #' + data.entryNumber);
+          return data.entryNumber;
         }
+        return null;
       })
       .catch(function(err) {
         console.warn('Google Sheets save failed, saved locally only:', err);
+        return null;
       });
   }
 
@@ -1179,10 +1183,9 @@
     const forSale = document.querySelector('input[name="forSale"]:checked').value === 'yes';
 
     const entryType = isFaculty ? 'faculty' : 'student';
-    const entryNumber = getNextEntryNumber(entryType);
 
     const entry = {
-      entryNumber: entryNumber,
+      entryNumber: 'PENDING',
       type: entryType,
       firstName: document.getElementById('firstName').value.trim(),
       lastName: document.getElementById('lastName').value.trim(),
@@ -1201,44 +1204,61 @@
       submittedAt: new Date().toISOString(),
     };
 
-    const submissions = getSubmissions();
-    submissions.push(entry);
-    saveSubmissions(submissions);
+    // Disable submit button while saving to Sheets
+    var submitBtn = document.querySelector('.submit-btn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting…';
 
-    // Send to Google Sheets
-    postToSheets(entry);
+    // Send to Google Sheets — server assigns the entry number
+    postToSheets(entry).then(function(serverEntryNumber) {
+      if (serverEntryNumber) {
+        entry.entryNumber = serverEntryNumber;
+      } else {
+        // Fallback to local counter if Sheets is unreachable
+        entry.entryNumber = getNextEntryNumber(entryType);
+      }
 
-    // Populate print label
-    document.getElementById('printEntryNumber').textContent = entry.entryNumber;
-    document.getElementById('printFirstName').textContent = entry.firstName;
-    document.getElementById('printLastName').textContent = entry.lastName;
-    document.getElementById('printEmail').textContent = entry.email;
-    document.getElementById('printPhone').textContent = entry.phone;
-    if (entry.type === 'student') {
-      document.getElementById('printTeacher').textContent = entry.teacher;
-      document.getElementById('printClass').textContent = entry.className;
-      document.getElementById('printTeacherRow').style.display = '';
-      document.getElementById('printClassRow').style.display = '';
-      document.getElementById('printDeptRow').style.display = 'none';
-    } else {
-      document.getElementById('printDept').textContent = entry.department;
-      document.getElementById('printTeacherRow').style.display = 'none';
-      document.getElementById('printClassRow').style.display = 'none';
-      document.getElementById('printDeptRow').style.display = '';
-    }
-    document.getElementById('printTitle').textContent = entry.title;
-    document.getElementById('printMedium').textContent = entry.medium;
-    document.getElementById('printPrice').textContent = entry.forSale ? '$' + entry.price : 'Not For Sale';
-    document.getElementById('printSignature').textContent = entry.signature;
-    document.getElementById('printDate').textContent = entry.date;
+      // Save locally
+      const submissions = getSubmissions();
+      submissions.push(entry);
+      saveSubmissions(submissions);
 
-    // Show success
-    document.getElementById('successEntryNumber').textContent = '#' + entry.entryNumber;
-    document.getElementById('formCard').style.display = 'none';
-    document.getElementById('successMessage').style.display = 'block';
-    document.getElementById('successMessage').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // Populate print label
+      document.getElementById('printEntryNumber').textContent = entry.entryNumber;
+      document.getElementById('printFirstName').textContent = entry.firstName;
+      document.getElementById('printLastName').textContent = entry.lastName;
+      document.getElementById('printEmail').textContent = entry.email;
+      document.getElementById('printPhone').textContent = entry.phone;
+      if (entry.type === 'student') {
+        document.getElementById('printTeacher').textContent = entry.teacher;
+        document.getElementById('printClass').textContent = entry.className;
+        document.getElementById('printTeacherRow').style.display = '';
+        document.getElementById('printClassRow').style.display = '';
+        document.getElementById('printDeptRow').style.display = 'none';
+      } else {
+        document.getElementById('printDept').textContent = entry.department;
+        document.getElementById('printTeacherRow').style.display = 'none';
+        document.getElementById('printClassRow').style.display = 'none';
+        document.getElementById('printDeptRow').style.display = '';
+      }
+      document.getElementById('printTitle').textContent = entry.title;
+      document.getElementById('printMedium').textContent = entry.medium;
+      document.getElementById('printPrice').textContent = entry.forSale ? '$' + entry.price : 'Not For Sale';
+      document.getElementById('printSignature').textContent = entry.signature;
+      document.getElementById('printDate').textContent = entry.date;
 
-    updateAdminPanel();
+      // Show success
+      document.getElementById('successEntryNumber').textContent = '#' + entry.entryNumber;
+      document.getElementById('formCard').style.display = 'none';
+      document.getElementById('successMessage').style.display = 'block';
+      document.getElementById('successMessage').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      // Re-enable submit button
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit Entry';
+
+      updateAdminPanel();
+    });
   });
 
   // --- Reset ---
