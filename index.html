@@ -948,14 +948,58 @@
   const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzEqZ_n7YdaHSyGs2rpHpE9K_1Z2Xfr8mQDFMnQ-z8bbFjD8CSVJMoVe9KzVDwLtrAEEw/exec';
 
   function postToSheets(entry) {
-    return fetch(SHEETS_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(entry),
-    }).catch(function(err) {
+    // Use a hidden form + iframe to POST cross-origin to Google Apps Script.
+    // fetch with no-cors strips Content-Type:application/json so data never
+    // arrives. A real <form> POST via hidden iframe avoids CORS entirely.
+    try {
+      var iframe = document.createElement('iframe');
+      iframe.name = 'sheetsPostFrame';
+      iframe.style.display = 'none';
+      document.body.appendChild(iframe);
+
+      var form = document.createElement('form');
+      form.method = 'POST';
+      form.action = SHEETS_URL;
+      form.target = 'sheetsPostFrame';
+
+      var fields = {
+        entryNumber: entry.entryNumber || '',
+        type: entry.type || '',
+        firstName: entry.firstName || '',
+        lastName: entry.lastName || '',
+        email: entry.email || '',
+        phone: entry.phone || '',
+        teacher: entry.teacher || '',
+        className: entry.className || '',
+        department: entry.department || '',
+        title: entry.title || '',
+        medium: entry.medium || '',
+        forSale: entry.forSale ? 'Yes' : 'No',
+        price: entry.price || '',
+        signature: entry.signature || '',
+        date: entry.date || '',
+        submittedAt: entry.submittedAt || new Date().toISOString()
+      };
+
+      Object.keys(fields).forEach(function(key) {
+        var input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = key;
+        input.value = fields[key];
+        form.appendChild(input);
+      });
+
+      document.body.appendChild(form);
+      form.submit();
+
+      // Clean up after a short delay
+      setTimeout(function() {
+        document.body.removeChild(form);
+        document.body.removeChild(iframe);
+      }, 5000);
+    } catch (err) {
       console.warn('Google Sheets POST failed, saved locally only:', err);
-    });
+    }
   }
 
   function fetchFromSheets() {

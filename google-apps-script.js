@@ -1,10 +1,23 @@
 // Google Apps Script — paste this into Extensions > Apps Script in your Google Sheet
-// This handles both receiving new submissions (POST) and reading all submissions (GET)
+// Then: Deploy > New deployment > Web app > Execute as "Me" > Access "Anyone"
+// IMPORTANT: After pasting, click Deploy > Manage deployments > Edit (pencil) >
+//   Version: "New version" > Deploy  — so the live URL picks up the changes.
 
 function doPost(e) {
   try {
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-    var data = JSON.parse(e.postData.contents);
+
+    // Support both form-encoded data (e.parameter) and JSON (e.postData)
+    var data;
+    if (e.parameter && e.parameter.entryNumber) {
+      // Form POST — fields arrive in e.parameter
+      data = e.parameter;
+    } else if (e.postData && e.postData.contents) {
+      // JSON POST (fallback)
+      data = JSON.parse(e.postData.contents);
+    } else {
+      throw new Error('No data received');
+    }
 
     sheet.appendRow([
       data.entryNumber || '',
@@ -18,20 +31,17 @@ function doPost(e) {
       data.department || '',
       data.title || '',
       data.medium || '',
-      data.forSale ? 'Yes' : 'No',
+      data.forSale === 'Yes' || data.forSale === true ? 'Yes' : 'No',
       data.price || '',
       data.signature || '',
       data.date || '',
       data.submittedAt || new Date().toISOString()
     ]);
 
-    return ContentService
-      .createTextOutput(JSON.stringify({ status: 'success', entryNumber: data.entryNumber }))
-      .setMimeType(ContentService.MimeType.JSON);
+    // Return a simple HTML page (form POSTs can't read JSON responses)
+    return HtmlService.createHtmlOutput('<html><body>OK</body></html>');
   } catch (error) {
-    return ContentService
-      .createTextOutput(JSON.stringify({ status: 'error', message: error.toString() }))
-      .setMimeType(ContentService.MimeType.JSON);
+    return HtmlService.createHtmlOutput('<html><body>Error: ' + error.toString() + '</body></html>');
   }
 }
 
