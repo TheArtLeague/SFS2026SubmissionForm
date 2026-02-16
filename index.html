@@ -898,7 +898,8 @@
 
   <div class="admin-panel" id="adminPanel">
     <div class="admin-card">
-      <h2>Submitted Entries</h2>
+      <h2>Submitted Entries <button onclick="loadFromSheets()" style="font-size:0.7rem; padding:0.25rem 0.75rem; margin-left:0.5rem; border:1px solid var(--al-blue); background:white; color:var(--al-blue); border-radius:4px; cursor:pointer; vertical-align:middle;">Refresh from Google Sheets</button></h2>
+      <div id="sheetsStatus" style="display:none; margin-bottom:0.75rem; padding:0.5rem 0.75rem; border-radius:4px; font-size:0.85rem;"></div>
       <div class="stats">
         <div class="stat-box"><div class="num" id="totalCount">0</div><div class="label">Total</div></div>
         <div class="stat-box"><div class="num" id="studentCount">0</div><div class="label">Students</div></div>
@@ -943,7 +944,56 @@
 
 <script>
 (function() {
-  // --- Storage ---
+  // --- Google Sheets Backend ---
+  const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzEqZ_n7YdaHSyGs2rpHpE9K_1Z2Xfr8mQDFMnQ-z8bbFjD8CSVJMoVe9KzVDwLtrAEEw/exec';
+
+  function postToSheets(entry) {
+    return fetch(SHEETS_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(entry),
+    }).catch(function(err) {
+      console.warn('Google Sheets POST failed, saved locally only:', err);
+    });
+  }
+
+  function fetchFromSheets() {
+    return fetch(SHEETS_URL)
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.status === 'success' && data.submissions) {
+          return data.submissions.map(function(row) {
+            return {
+              entryNumber: row['Entry No.'] || '',
+              type: row['Type'] || '',
+              firstName: row['First Name'] || '',
+              lastName: row['Last Name'] || '',
+              name: (row['First Name'] || '') + ' ' + (row['Last Name'] || ''),
+              email: row['Email'] || '',
+              phone: row['Phone'] || '',
+              teacher: row['Teacher'] || '',
+              className: row['Class'] || '',
+              department: row['Department'] || '',
+              title: row['Title'] || '',
+              medium: row['Medium'] || '',
+              forSale: row['For Sale'] === 'Yes',
+              price: row['Price'] || '',
+              signature: row['Signature'] || '',
+              date: row['Date'] || '',
+              submittedAt: row['Submitted At'] || '',
+            };
+          });
+        }
+        return [];
+      })
+      .catch(function(err) {
+        console.warn('Google Sheets GET failed, using local data:', err);
+        return null;
+      });
+  }
+
+  // --- Local Storage (fallback) ---
   const STORAGE_KEY = 'artleague_sfs2026_submissions';
   const COUNTER_KEY = 'artleague_sfs2026_counters';
 
@@ -1126,6 +1176,9 @@
     submissions.push(entry);
     saveSubmissions(submissions);
 
+    // Send to Google Sheets
+    postToSheets(entry);
+
     // Populate print label
     document.getElementById('printEntryNumber').textContent = entry.entryNumber;
     document.getElementById('printFirstName').textContent = entry.firstName;
@@ -1185,17 +1238,52 @@
   };
 
   // --- Admin Panel ---
+  var sheetsData = null; // Holds latest data fetched from Google Sheets
+
+  function getAllSubmissions() {
+    return sheetsData || getSubmissions();
+  }
+
   window.toggleAdmin = function() {
     const panel = document.getElementById('adminPanel');
     panel.classList.toggle('visible');
     if (panel.classList.contains('visible')) {
-      updateAdminPanel();
+      loadFromSheets();
       panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 
-  function updateAdminPanel() {
-    const submissions = getSubmissions();
+  window.loadFromSheets = function() {
+    const status = document.getElementById('sheetsStatus');
+    status.style.display = 'block';
+    status.style.background = '#e8f0fe';
+    status.style.color = '#1a3a6b';
+    status.textContent = 'Loading submissions from Google Sheets…';
+
+    fetchFromSheets().then(function(data) {
+      if (data && data.length > 0) {
+        sheetsData = data;
+        status.style.background = '#d4edda';
+        status.style.color = '#155724';
+        status.textContent = 'Loaded ' + data.length + ' submission(s) from Google Sheets.';
+        updateAdminPanel(data);
+      } else if (data && data.length === 0) {
+        sheetsData = data;
+        status.style.background = '#fff3cd';
+        status.style.color = '#856404';
+        status.textContent = 'Google Sheets is empty. Showing local submissions.';
+        updateAdminPanel();
+      } else {
+        status.style.background = '#f8d7da';
+        status.style.color = '#721c24';
+        status.textContent = 'Could not reach Google Sheets. Showing local submissions.';
+        updateAdminPanel();
+      }
+    });
+  };
+
+  function updateAdminPanel(submissionsOverride) {
+    const submissions = submissionsOverride || getSubmissions();
     const students = submissions.filter(s => s.type === 'student');
     const faculty = submissions.filter(s => s.type === 'faculty');
 
@@ -1211,7 +1299,7 @@
       row.innerHTML =
         '<td>' + (s.entryNumber || (i + 1)) + '</td>' +
         '<td>' + esc(s.type) + '</td>' +
-        '<td>' + esc(s.name) + '</td>' +
+        '<td>' + esc(s.name || ((s.firstName || '') + ' ' + (s.lastName || '')).trim()) + '</td>' +
         '<td>' + esc(s.type === 'student' ? s.teacher : s.department) + '</td>' +
         '<td>' + esc(s.className || '—') + '</td>' +
         '<td>' + esc(s.title) + '</td>' +
@@ -1255,7 +1343,7 @@
   // 5. MEDIUM  6. PRICE  7. TYPE OF SALE  8. REFERRAL
   // 9. AMOUNT TO ARTIST  10. ARTIST PAID DATE  11. ARTIST PAID CHECK NO  12. NOTES
   window.exportStudentFM = function() {
-    const submissions = getSubmissions().filter(s => s.type === 'student');
+    const submissions = getAllSubmissions().filter(s => s.type === 'student');
     const headers = [
       'ARTIST LAST NAME', 'INITIALS', 'PIECE',
       'TITLE', 'MEDIUM', 'PRICE',
@@ -1277,7 +1365,7 @@
   };
 
   window.exportFacultyFM = function() {
-    const submissions = getSubmissions().filter(s => s.type === 'faculty');
+    const submissions = getAllSubmissions().filter(s => s.type === 'faculty');
     const headers = [
       'ARTIST LAST NAME', 'INITIALS', 'PIECE',
       'TITLE', 'MEDIUM', 'PRICE',
@@ -1300,7 +1388,7 @@
 
   // --- Standard Exports ---
   window.exportStudentCSV = function() {
-    const submissions = getSubmissions().filter(s => s.type === 'student');
+    const submissions = getAllSubmissions().filter(s => s.type === 'student');
     const headers = ['No.', 'First Name', 'Last Name', 'Teacher', 'Class', 'Title', 'Medium', 'Price', 'Phone', 'Email', 'Date Submitted'];
     const rows = submissions.map((s, i) => [
       s.entryNumber || (500 + i), s.firstName || '', s.lastName || '', s.teacher, s.className, s.title, s.medium,
@@ -1310,7 +1398,7 @@
   };
 
   window.exportFacultyCSV = function() {
-    const submissions = getSubmissions().filter(s => s.type === 'faculty');
+    const submissions = getAllSubmissions().filter(s => s.type === 'faculty');
     const headers = ['No.', 'First Name', 'Last Name', 'Department', 'Title', 'Medium', 'Price', 'Phone', 'Email', 'Date Submitted'];
     const rows = submissions.map((s, i) => [
       s.entryNumber || (800 + i), s.firstName || '', s.lastName || '', s.department, s.title, s.medium,
@@ -1320,7 +1408,7 @@
   };
 
   window.exportAllCSV = function() {
-    const submissions = getSubmissions();
+    const submissions = getAllSubmissions();
     const headers = ['No.', 'Type', 'First Name', 'Last Name', 'Teacher/Dept', 'Class', 'Title', 'Medium', 'Price', 'Phone', 'Email', 'Date Submitted'];
     const rows = submissions.map((s, i) => [
       s.entryNumber || (i + 1), s.type, s.firstName || '', s.lastName || '',
