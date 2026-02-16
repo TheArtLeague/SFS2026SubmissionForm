@@ -898,7 +898,7 @@
 
   <div class="admin-panel" id="adminPanel">
     <div class="admin-card">
-      <h2>Submitted Entries <button onclick="loadFromSheets()" style="font-size:0.7rem; padding:0.25rem 0.75rem; margin-left:0.5rem; border:1px solid var(--al-blue); background:white; color:var(--al-blue); border-radius:4px; cursor:pointer; vertical-align:middle;">Refresh from Google Sheets</button></h2>
+      <h2>Submitted Entries <button onclick="loadFromSheets()" style="font-size:0.7rem; padding:0.25rem 0.75rem; margin-left:0.5rem; border:1px solid var(--al-blue); background:white; color:var(--al-blue); border-radius:4px; cursor:pointer; vertical-align:middle;">Refresh from Google Sheets</button> <button onclick="syncLocalToSheets()" style="font-size:0.7rem; padding:0.25rem 0.75rem; margin-left:0.25rem; border:1px solid #28a745; background:white; color:#28a745; border-radius:4px; cursor:pointer; vertical-align:middle;">Sync Local → Sheets</button></h2>
       <div id="sheetsStatus" style="display:none; margin-bottom:0.75rem; padding:0.5rem 0.75rem; border-radius:4px; font-size:0.85rem;"></div>
       <div class="stats">
         <div class="stat-box"><div class="num" id="totalCount">0</div><div class="label">Total</div></div>
@@ -1337,6 +1337,62 @@
         status.textContent = 'Could not reach Google Sheets. Showing ' + localSubs.length + ' local submission(s).';
         updateAdminPanel(localSubs);
       }
+    });
+  };
+
+  // Push any local entries that aren't in Google Sheets yet
+  window.syncLocalToSheets = function() {
+    var status = document.getElementById('sheetsStatus');
+    status.style.display = 'block';
+    status.style.background = '#e8f0fe';
+    status.style.color = '#1a3a6b';
+    status.textContent = 'Checking for local entries missing from Google Sheets…';
+
+    fetchFromSheets().then(function(sheetsData) {
+      if (!sheetsData) {
+        status.style.background = '#f8d7da';
+        status.style.color = '#721c24';
+        status.textContent = 'Could not reach Google Sheets.';
+        return;
+      }
+
+      // Build set of entry numbers already in Sheets
+      var sheetsEntryNums = {};
+      sheetsData.forEach(function(s) {
+        var key = String(s.entryNumber || '').trim();
+        if (key) sheetsEntryNums[key] = true;
+      });
+
+      // Find local entries not in Sheets
+      var localSubs = getSubmissions();
+      var missing = localSubs.filter(function(s) {
+        var key = String(s.entryNumber || '').trim();
+        return key && !sheetsEntryNums[key];
+      });
+
+      if (missing.length === 0) {
+        status.style.background = '#d4edda';
+        status.style.color = '#155724';
+        status.textContent = 'All local entries are already in Google Sheets. Nothing to sync.';
+        return;
+      }
+
+      status.textContent = 'Syncing ' + missing.length + ' local entry/entries to Google Sheets…';
+
+      // Send each missing entry to Sheets (sequentially with small delay)
+      var i = 0;
+      function sendNext() {
+        if (i >= missing.length) {
+          status.style.background = '#d4edda';
+          status.style.color = '#155724';
+          status.textContent = 'Synced ' + missing.length + ' entry/entries to Google Sheets! Click Refresh to verify.';
+          return;
+        }
+        postToSheets(missing[i]);
+        i++;
+        setTimeout(sendNext, 1500); // wait 1.5s between each to avoid rate limiting
+      }
+      sendNext();
     });
   };
 
