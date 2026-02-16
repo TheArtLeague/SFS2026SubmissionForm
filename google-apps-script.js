@@ -1,61 +1,49 @@
 // Google Apps Script — paste this into Extensions > Apps Script in your Google Sheet
-// Then: Deploy > New deployment > Web app > Execute as "Me" > Access "Anyone"
-// IMPORTANT: After pasting, click Deploy > Manage deployments > Edit (pencil) >
-//   Version: "New version" > Deploy  — so the live URL picks up the changes.
-
-function doPost(e) {
-  try {
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-
-    // Support both form-encoded data (e.parameter) and JSON (e.postData)
-    var data;
-    if (e.parameter && e.parameter.entryNumber) {
-      // Form POST — fields arrive in e.parameter
-      data = e.parameter;
-    } else if (e.postData && e.postData.contents) {
-      // JSON POST (fallback)
-      data = JSON.parse(e.postData.contents);
-    } else {
-      throw new Error('No data received');
-    }
-
-    sheet.appendRow([
-      data.entryNumber || '',
-      data.type || '',
-      data.firstName || '',
-      data.lastName || '',
-      data.email || '',
-      data.phone || '',
-      data.teacher || '',
-      data.className || '',
-      data.department || '',
-      data.title || '',
-      data.medium || '',
-      data.forSale === 'Yes' || data.forSale === true ? 'Yes' : 'No',
-      data.price || '',
-      data.signature || '',
-      data.date || '',
-      data.submittedAt || new Date().toISOString()
-    ]);
-
-    // Return a simple HTML page (form POSTs can't read JSON responses)
-    return HtmlService.createHtmlOutput('<html><body>OK</body></html>');
-  } catch (error) {
-    return HtmlService.createHtmlOutput('<html><body>Error: ' + error.toString() + '</body></html>');
-  }
-}
+// Then: Deploy > Manage deployments > Edit (pencil) > Version: "New version" > Deploy
+//
+// This uses doGet for BOTH reading and writing to avoid CORS issues.
+// When action=submit is passed, it writes a new row. Otherwise it reads all rows.
 
 function doGet(e) {
   try {
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-    var data = sheet.getDataRange().getValues();
-    var headers = data[0];
+
+    // --- WRITE: action=submit ---
+    if (e.parameter && e.parameter.action === 'submit') {
+      var data = e.parameter;
+      sheet.appendRow([
+        data.entryNumber || '',
+        data.type || '',
+        data.firstName || '',
+        data.lastName || '',
+        data.email || '',
+        data.phone || '',
+        data.teacher || '',
+        data.className || '',
+        data.department || '',
+        data.title || '',
+        data.medium || '',
+        data.forSale || 'No',
+        data.price || '',
+        data.signature || '',
+        data.date || '',
+        data.submittedAt || new Date().toISOString()
+      ]);
+
+      return ContentService
+        .createTextOutput(JSON.stringify({ status: 'success', entryNumber: data.entryNumber }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // --- READ: return all rows ---
+    var allData = sheet.getDataRange().getValues();
+    var headers = allData[0];
     var rows = [];
 
-    for (var i = 1; i < data.length; i++) {
+    for (var i = 1; i < allData.length; i++) {
       var row = {};
       for (var j = 0; j < headers.length; j++) {
-        row[headers[j]] = data[i][j];
+        row[headers[j]] = allData[i][j];
       }
       rows.push(row);
     }
