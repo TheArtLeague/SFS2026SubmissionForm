@@ -820,6 +820,7 @@
   <div class="form-card success-message" id="successMessage">
     <div class="check">&#10003;</div>
     <h2>Entry Submitted!</h2>
+    <p>Your entry number is <strong style="font-size:1.3rem;" id="successEntryNumber"></strong></p>
     <p>Thank you for your submission to the 2026 Student/Faculty Show.</p>
     <p>Please remember to bring your artwork to drop-off on <strong>Monday, February 16</strong>.</p>
     <p style="margin-top:0.5rem; font-size:0.9rem; color:var(--al-gray);">Print your entry form below to attach to your artwork at drop-off.</p>
@@ -836,6 +837,10 @@
       <p>Entry Form &bull; February 20 &ndash; March 1, 2026 &bull; Gallery, Room 21</p>
     </div>
     <div class="print-body">
+      <div class="print-field full-width">
+        <div class="pf-label">Entry No.</div>
+        <div class="pf-value" id="printEntryNumber" style="font-size:16pt; font-weight:800;"></div>
+      </div>
       <div class="print-field">
         <div class="pf-label">First Name</div>
         <div class="pf-value" id="printFirstName"></div>
@@ -938,6 +943,7 @@
 (function() {
   // --- Storage ---
   const STORAGE_KEY = 'artleague_sfs2026_submissions';
+  const COUNTER_KEY = 'artleague_sfs2026_counters';
 
   function getSubmissions() {
     try {
@@ -947,6 +953,24 @@
 
   function saveSubmissions(data) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }
+
+  function getCounters() {
+    try {
+      return JSON.parse(localStorage.getItem(COUNTER_KEY)) || { student: 500, faculty: 800 };
+    } catch(e) { return { student: 500, faculty: 800 }; }
+  }
+
+  function saveCounters(counters) {
+    localStorage.setItem(COUNTER_KEY, JSON.stringify(counters));
+  }
+
+  function getNextEntryNumber(type) {
+    const counters = getCounters();
+    const num = counters[type];
+    counters[type] = num + 1;
+    saveCounters(counters);
+    return num;
   }
 
   // --- Faculty checkbox toggle ---
@@ -1073,8 +1097,12 @@
     const isFaculty = document.getElementById('isFaculty').checked;
     const forSale = document.querySelector('input[name="forSale"]:checked').value === 'yes';
 
+    const entryType = isFaculty ? 'faculty' : 'student';
+    const entryNumber = getNextEntryNumber(entryType);
+
     const entry = {
-      type: isFaculty ? 'faculty' : 'student',
+      entryNumber: entryNumber,
+      type: entryType,
       firstName: document.getElementById('firstName').value.trim(),
       lastName: document.getElementById('lastName').value.trim(),
       name: document.getElementById('firstName').value.trim() + ' ' + document.getElementById('lastName').value.trim(),
@@ -1097,6 +1125,7 @@
     saveSubmissions(submissions);
 
     // Populate print label
+    document.getElementById('printEntryNumber').textContent = entry.entryNumber;
     document.getElementById('printFirstName').textContent = entry.firstName;
     document.getElementById('printLastName').textContent = entry.lastName;
     document.getElementById('printEmail').textContent = entry.email;
@@ -1120,6 +1149,7 @@
     document.getElementById('printDate').textContent = entry.date;
 
     // Show success
+    document.getElementById('successEntryNumber').textContent = '#' + entry.entryNumber;
     document.getElementById('formCard').style.display = 'none';
     document.getElementById('successMessage').style.display = 'block';
     document.getElementById('successMessage').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1177,7 +1207,7 @@
     submissions.forEach((s, i) => {
       const row = document.createElement('tr');
       row.innerHTML =
-        '<td>' + (i + 1) + '</td>' +
+        '<td>' + (s.entryNumber || (i + 1)) + '</td>' +
         '<td>' + esc(s.type) + '</td>' +
         '<td>' + esc(s.name) + '</td>' +
         '<td>' + esc(s.type === 'student' ? s.teacher : s.department) + '</td>' +
@@ -1221,7 +1251,7 @@
     const submissions = getSubmissions().filter(s => s.type === 'student');
     const headers = ['No.', 'First Name', 'Last Name', 'Teacher', 'Class', 'Title', 'Medium', 'Price', 'Phone', 'Email', 'Date Submitted'];
     const rows = submissions.map((s, i) => [
-      i + 1, s.firstName || '', s.lastName || '', s.teacher, s.className, s.title, s.medium,
+      s.entryNumber || (500 + i), s.firstName || '', s.lastName || '', s.teacher, s.className, s.title, s.medium,
       s.forSale ? s.price : 'NFS', s.phone, s.email, s.date
     ]);
     downloadCSV('student_show_intake_2026.csv', toCSV(headers, rows));
@@ -1231,7 +1261,7 @@
     const submissions = getSubmissions().filter(s => s.type === 'faculty');
     const headers = ['No.', 'First Name', 'Last Name', 'Department', 'Title', 'Medium', 'Price', 'Phone', 'Email', 'Date Submitted'];
     const rows = submissions.map((s, i) => [
-      i + 1, s.firstName || '', s.lastName || '', s.department, s.title, s.medium,
+      s.entryNumber || (800 + i), s.firstName || '', s.lastName || '', s.department, s.title, s.medium,
       s.forSale ? s.price : 'NFS', s.phone, s.email, s.date
     ]);
     downloadCSV('faculty_show_intake_2026.csv', toCSV(headers, rows));
@@ -1241,7 +1271,7 @@
     const submissions = getSubmissions();
     const headers = ['No.', 'Type', 'First Name', 'Last Name', 'Teacher/Dept', 'Class', 'Title', 'Medium', 'Price', 'Phone', 'Email', 'Date Submitted'];
     const rows = submissions.map((s, i) => [
-      i + 1, s.type, s.firstName || '', s.lastName || '',
+      s.entryNumber || (i + 1), s.type, s.firstName || '', s.lastName || '',
       s.type === 'student' ? s.teacher : s.department,
       s.className || '', s.title, s.medium,
       s.forSale ? s.price : 'NFS', s.phone, s.email, s.date
@@ -1250,8 +1280,9 @@
   };
 
   window.clearSubmissions = function() {
-    if (confirm('Are you sure you want to clear all submissions? This cannot be undone.')) {
+    if (confirm('Are you sure you want to clear all submissions? This cannot be undone. Entry numbers will reset to 500/800.')) {
       saveSubmissions([]);
+      saveCounters({ student: 500, faculty: 800 });
       updateAdminPanel();
     }
   };
