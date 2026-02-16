@@ -905,6 +905,8 @@
         <div class="stat-box"><div class="num" id="facultyCount">0</div><div class="label">Faculty</div></div>
       </div>
       <div class="admin-btns">
+        <button onclick="exportStudentFM()"><strong>Export Student CSV (FileMaker)</strong></button>
+        <button onclick="exportFacultyFM()"><strong>Export Faculty CSV (FileMaker)</strong></button>
         <button onclick="exportStudentCSV()">Export Student CSV</button>
         <button onclick="exportFacultyCSV()">Export Faculty CSV</button>
         <button onclick="exportAllCSV()">Export All CSV</button>
@@ -1247,6 +1249,50 @@
     URL.revokeObjectURL(url);
   }
 
+  // --- FileMaker Exports (matching CRM field names) ---
+  window.exportStudentFM = function() {
+    const submissions = getSubmissions().filter(s => s.type === 'student');
+    const headers = [
+      'No.', 'ARTIST NAME First', 'ARTIST NAME Last',
+      'ADDRESS', 'CITY', 'STATE', 'ZIP CODE',
+      'HOME PHONE', 'WORK PHONE', 'MOBILE PHONE', 'EMAIL',
+      'Faculty Name', 'Faculty Name 2', 'Class Name',
+      'TITLE', 'MEDIUM', 'MEDIUM OTHER', 'CATEGORY', 'PRICE'
+    ];
+    const rows = submissions.map((s, i) => [
+      s.entryNumber || (500 + i),
+      s.firstName || '', s.lastName || '',
+      '', '', '', '',
+      '', '', s.phone || '', s.email || '',
+      s.teacher || '', '', s.className || '',
+      s.title || '', s.medium || '', '', '',
+      s.forSale ? s.price : 'NFS'
+    ]);
+    downloadCSV('student_show_filemaker_2026.csv', toCSV(headers, rows));
+  };
+
+  window.exportFacultyFM = function() {
+    const submissions = getSubmissions().filter(s => s.type === 'faculty');
+    const headers = [
+      'No.', 'ARTIST NAME First', 'ARTIST NAME Last',
+      'ADDRESS', 'CITY', 'STATE', 'ZIP CODE',
+      'HOME PHONE', 'WORK PHONE', 'MOBILE PHONE', 'EMAIL',
+      'Faculty Name', 'Faculty Name 2', 'Class Name',
+      'TITLE', 'MEDIUM', 'MEDIUM OTHER', 'CATEGORY', 'PRICE'
+    ];
+    const rows = submissions.map((s, i) => [
+      s.entryNumber || (800 + i),
+      s.firstName || '', s.lastName || '',
+      '', '', '', '',
+      '', '', s.phone || '', s.email || '',
+      '', '', s.department || '',
+      s.title || '', s.medium || '', '', '',
+      s.forSale ? s.price : 'NFS'
+    ]);
+    downloadCSV('faculty_show_filemaker_2026.csv', toCSV(headers, rows));
+  };
+
+  // --- Standard Exports ---
   window.exportStudentCSV = function() {
     const submissions = getSubmissions().filter(s => s.type === 'student');
     const headers = ['No.', 'First Name', 'Last Name', 'Teacher', 'Class', 'Title', 'Medium', 'Price', 'Phone', 'Email', 'Date Submitted'];
