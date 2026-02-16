@@ -1238,10 +1238,31 @@
   };
 
   // --- Admin Panel ---
-  var sheetsData = null; // Holds latest data fetched from Google Sheets
+  var mergedData = null; // Holds merged local + Sheets data
 
   function getAllSubmissions() {
-    return sheetsData || getSubmissions();
+    return mergedData || getSubmissions();
+  }
+
+  // Merge local and Sheets data, deduplicating by entry number
+  function mergeSubmissions(localSubs, sheetsSubs) {
+    var seen = {};
+    var merged = [];
+    // Add all Sheets entries first (they are the shared source of truth)
+    sheetsSubs.forEach(function(s) {
+      var key = String(s.entryNumber || '').trim();
+      if (key) seen[key] = true;
+      merged.push(s);
+    });
+    // Add any local entries not already in Sheets (e.g. if POST hadn't reached Sheets yet)
+    localSubs.forEach(function(s) {
+      var key = String(s.entryNumber || '').trim();
+      if (key && !seen[key]) {
+        seen[key] = true;
+        merged.push(s);
+      }
+    });
+    return merged;
   }
 
   window.toggleAdmin = function() {
@@ -1261,23 +1282,31 @@
     status.textContent = 'Loading submissions from Google Sheets…';
 
     fetchFromSheets().then(function(data) {
+      var localSubs = getSubmissions();
       if (data && data.length > 0) {
-        sheetsData = data;
+        var combined = mergeSubmissions(localSubs, data);
+        mergedData = combined;
         status.style.background = '#d4edda';
         status.style.color = '#155724';
-        status.textContent = 'Loaded ' + data.length + ' submission(s) from Google Sheets.';
-        updateAdminPanel(data);
+        var msg = 'Loaded ' + data.length + ' from Google Sheets';
+        if (combined.length > data.length) {
+          msg += ' + ' + (combined.length - data.length) + ' local-only';
+        }
+        msg += ' — ' + combined.length + ' total submission(s).';
+        status.textContent = msg;
+        updateAdminPanel(combined);
       } else if (data && data.length === 0) {
-        sheetsData = data;
+        mergedData = localSubs;
         status.style.background = '#fff3cd';
         status.style.color = '#856404';
-        status.textContent = 'Google Sheets is empty. Showing local submissions.';
-        updateAdminPanel();
+        status.textContent = 'Google Sheets is empty. Showing ' + localSubs.length + ' local submission(s).';
+        updateAdminPanel(localSubs);
       } else {
+        mergedData = localSubs;
         status.style.background = '#f8d7da';
         status.style.color = '#721c24';
-        status.textContent = 'Could not reach Google Sheets. Showing local submissions.';
-        updateAdminPanel();
+        status.textContent = 'Could not reach Google Sheets. Showing ' + localSubs.length + ' local submission(s).';
+        updateAdminPanel(localSubs);
       }
     });
   };
