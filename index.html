@@ -1249,24 +1249,29 @@
     URL.revokeObjectURL(url);
   }
 
-  // --- FileMaker Exports (matching CRM field names) ---
+  // --- FileMaker Exports (matching GallerySales table field order) ---
+  // FileMaker imports by POSITION. The GallerySales table field order is:
+  // 1. ARTIST LAST NAME  2. INITIALS  3. PIECE (entry#)  4. TITLE
+  // 5. MEDIUM  6. PRICE  7. TYPE OF SALE  8. REFERRAL
+  // 9. AMOUNT TO ARTIST  10. ARTIST PAID DATE  11. ARTIST PAID CHECK NO  12. NOTES
   window.exportStudentFM = function() {
     const submissions = getSubmissions().filter(s => s.type === 'student');
     const headers = [
-      'No.', 'ARTIST NAME First', 'ARTIST NAME Last',
-      'ADDRESS', 'CITY', 'STATE', 'ZIP CODE',
-      'HOME PHONE', 'WORK PHONE', 'MOBILE PHONE', 'EMAIL',
-      'Faculty Name', 'Faculty Name 2', 'Class Name',
-      'TITLE', 'MEDIUM', 'MEDIUM OTHER', 'CATEGORY', 'PRICE'
+      'ARTIST LAST NAME', 'INITIALS', 'PIECE',
+      'TITLE', 'MEDIUM', 'PRICE',
+      'TYPE OF SALE', 'REFERRAL', 'AMOUNT TO ARTIST',
+      'ARTIST PAID DATE', 'ARTIST PAID CHECK NO', 'NOTES'
     ];
     const rows = submissions.map((s, i) => [
+      s.lastName || '',
+      s.firstName ? s.firstName.charAt(0) : '',
       s.entryNumber || (500 + i),
-      s.firstName || '', s.lastName || '',
-      '', '', '', '',
-      '', '', s.phone || '', s.email || '',
-      s.teacher || '', '', s.className || '',
-      s.title || '', s.medium || '', '', '',
-      s.forSale ? s.price : 'NFS'
+      s.title || '',
+      s.medium || '',
+      s.forSale ? s.price : 'NFS',
+      '', '',  // TYPE OF SALE, REFERRAL
+      '', '', '', // AMOUNT TO ARTIST, PAID DATE, CHECK NO
+      'Teacher: ' + (s.teacher || '') + ' | Class: ' + (s.className || '') + ' | Phone: ' + (s.phone || '') + ' | Email: ' + (s.email || '')
     ]);
     downloadCSV('student_show_filemaker_2026.csv', toCSV(headers, rows));
   };
@@ -1274,20 +1279,21 @@
   window.exportFacultyFM = function() {
     const submissions = getSubmissions().filter(s => s.type === 'faculty');
     const headers = [
-      'No.', 'ARTIST NAME First', 'ARTIST NAME Last',
-      'ADDRESS', 'CITY', 'STATE', 'ZIP CODE',
-      'HOME PHONE', 'WORK PHONE', 'MOBILE PHONE', 'EMAIL',
-      'Faculty Name', 'Faculty Name 2', 'Class Name',
-      'TITLE', 'MEDIUM', 'MEDIUM OTHER', 'CATEGORY', 'PRICE'
+      'ARTIST LAST NAME', 'INITIALS', 'PIECE',
+      'TITLE', 'MEDIUM', 'PRICE',
+      'TYPE OF SALE', 'REFERRAL', 'AMOUNT TO ARTIST',
+      'ARTIST PAID DATE', 'ARTIST PAID CHECK NO', 'NOTES'
     ];
     const rows = submissions.map((s, i) => [
+      s.lastName || '',
+      s.firstName ? s.firstName.charAt(0) : '',
       s.entryNumber || (800 + i),
-      s.firstName || '', s.lastName || '',
-      '', '', '', '',
-      '', '', s.phone || '', s.email || '',
-      '', '', s.department || '',
-      s.title || '', s.medium || '', '', '',
-      s.forSale ? s.price : 'NFS'
+      s.title || '',
+      s.medium || '',
+      s.forSale ? s.price : 'NFS',
+      '', '',  // TYPE OF SALE, REFERRAL
+      '', '', '', // AMOUNT TO ARTIST, PAID DATE, CHECK NO
+      'Dept: ' + (s.department || '') + ' | Phone: ' + (s.phone || '') + ' | Email: ' + (s.email || '')
     ]);
     downloadCSV('faculty_show_filemaker_2026.csv', toCSV(headers, rows));
   };
